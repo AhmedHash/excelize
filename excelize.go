@@ -66,6 +66,28 @@ func OpenFile(filename string) (*File, error) {
 	return f, nil
 }
 
+func GetFileFromBytes(b []byte) (*File, error){
+	zr, err := zip.NewReader(bytes.NewReader(b), int64(len(b)))
+	if err != nil {
+		return nil, err
+	}
+
+	file, sheetCount, err := ReadZipReader(zr)
+	if err != nil {
+		return nil, err
+	}
+	f := &File{
+		checked:    make(map[string]bool),
+		Sheet:      make(map[string]*xlsxWorksheet),
+		SheetCount: sheetCount,
+		XLSX:       file,
+	}
+	f.sheetMap = f.getSheetMap()
+	f.Styles = f.stylesReader()
+	f.Theme = f.themeReader()
+	return f, nil
+}
+
 // newFile is object builder
 func newFile() *File {
 	return &File{
